@@ -1,30 +1,29 @@
-name: Auto generate and push CSV
+name: Update CSV
 
 on:
   schedule:
-    - cron: "0 17 * * *"  # 每天凌晨1点（北京时间 UTC+8）
-  workflow_dispatch:       # 允许手动触发
+    - cron: '0 1 * * *'  # 每天 01:00 UTC (北京时间 09:00)
+  workflow_dispatch:     # 可手动触发
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install pandas requests
 
-      - name: Run Python script
+      - name: Run script
         run: |
           python code.py
 
@@ -32,6 +31,6 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add *.csv
+          git add target_csv/*.csv || echo "No CSV generated"
           git commit -m "Auto update CSV $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
           git push
